@@ -6,10 +6,13 @@ cd /share/Public/fvw
 docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
 
 echo "📥 Lade neuesten Code..."
+rm -rf fvw-main main.zip
 wget -q -O main.zip https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
 unzip -q -o main.zip
-rm -rf apps docker-compose.yml docker-compose.prod.yml
-mv fvw-main/* .
+
+echo "🔄 Ersetze alte Dateien..."
+rm -rf apps packages services docker-compose.yml docker-compose.prod.yml deploy-qnap.sh
+cp -r fvw-main/* .
 rm -rf fvw-main main.zip
 
 echo "🔧 Generiere .env mit QNAP-IP..."
