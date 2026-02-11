@@ -1,50 +1,38 @@
 # Build Stage
-FROM node:20-alpine AS base
+FROM node:20-alpine AS builder
 
-# Set HOME to /tmp globally to avoid any permission issues
-ENV HOME=/tmp
-ENV NPM_CONFIG_CACHE=/tmp/.npm
-
-# Install dependencies only when needed
-FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Dummy env vars for build time (needed for static generation)
-# Real values are injected at runtime via docker-compose
-ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-key-for-build
-ENV NEXT_TELEMETRY_DISABLED=1
-
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source
 COPY . .
 
+# Build for production
 RUN npm run build
 
-# Production image
-FROM base AS runner
-WORKDIR /app
+# Production Stage (Nginx)
+FROM nginx:alpine
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Copy built assets
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Copy Nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Script to inject env vars at runtime
+COPY <<EOF /docker-entrypoint.d/40-env-config.sh
+#!/bin/sh
+cat <<JS > /usr/share/nginx/html/config.js
+window.__env__ = {
+  VITE_SUPABASE_URL: "\${NEXT_PUBLIC_SUPABASE_URL}",
+  VITE_SUPABASE_ANON_KEY: "\${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+};
+JS
+EOF
 
-USER nextjs
+RUN chmod +x /docker-entrypoint.d/40-env-config.sh
 
-EXPOSE 3000
+EXPOSE 80
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]
