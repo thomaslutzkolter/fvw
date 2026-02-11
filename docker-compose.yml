@@ -40,7 +40,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./services/supabase/migrations:/docker-entrypoint-initdb.d:ro
     networks:
       - kontakte-network
     restart: unless-stopped
