@@ -1,72 +1,35 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Runtime environment variables injected by Docker entrypoint script
-const env = (window as any).__env__ || {}
-const supabaseUrl = env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321'
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-key'
+// IMPORTANT: Only use runtime config from window.__env__
+// Do NOT use import.meta.env as it gets hardcoded at build time
+const getEnv = () => {
+    const env = (window as any).__env__ || {}
+    return {
+        url: env.VITE_SUPABASE_URL || 'http://localhost:54321',
+        key: env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+    }
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const env = getEnv()
+export const supabase = createClient(env.url, env.key)
 
-// Type Definitions
 export type Contact = {
     id: string
-    user_id: string
+    title?: string
     first_name?: string
-    middle_name?: string
     last_name?: string
     nickname?: string
-    title?: string
-    nobility_title?: string
-    academic_title?: string
-    salutation?: string
-    gender?: string
     company?: string
     department?: string
     position?: string
     job_title?: string
-    contact_type: 'personal' | 'business' | 'both'
+    contact_type?: 'personal' | 'business' | 'both'
     category?: string
-    tags?: string[]
+    notes?: string
     birthday?: string
     anniversary?: string
-    website?: string
-    photo_url?: string
-    notes?: string
+    tags?: string[]
     created_at: string
     updated_at: string
-    deleted_at?: string
-}
-
-export type ContactEmail = {
-    id: string
-    contact_id: string
-    email: string
-    type: 'work' | 'personal' | 'other'
-    is_primary: boolean
-    created_at: string
-}
-
-export type ContactPhone = {
-    id: string
-    contact_id: string
-    number: string
-    type: 'mobile' | 'work' | 'home' | 'fax' | 'other'
-    is_primary: boolean
-    created_at: string
-}
-
-export type ContactAddress = {
-    id: string
-    contact_id: string
-    type: 'home' | 'work' | 'billing' | 'shipping' | 'other'
-    is_primary: boolean
-    street?: string
-    street2?: string
-    city?: string
-    state?: string
-    postal_code?: string
-    country: string
-    latitude?: number
-    longitude?: number
-    created_at: string
+    deleted_at?: string | null
 }
