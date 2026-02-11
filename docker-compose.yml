@@ -230,18 +230,24 @@ services:
 
 
   # =================================
-  # WEB FRONTEND (Placeholder)
+  # WEB FRONTEND (Next.js)
   # =================================
   web:
-    image: httpd:alpine
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
     container_name: kontakte-web
-    command: >
-      sh -c "echo '<html><head><title>FVW</title><meta charset=\"utf-8\"><style>*{margin:0;padding:0}body{font-family:sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}.container{text-align:center;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border-radius:20px;padding:60px 40px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:600px}h1{font-size:3em;margin-bottom:20px}p{font-size:1.2em;margin-bottom:30px;opacity:.9}.links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}a{display:inline-block;padding:15px 30px;background:#fff;color:#667eea;text-decoration:none;border-radius:10px;font-weight:600;transition:transform .2s}a:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.2)}</style></head><body><div class=\"container\"><h1>🚀 FVW Kontaktverwaltung</h1><p>Dein Supabase Backend läuft!</p><div class=\"links\"><a href=\"/studio\">📊 Supabase Studio</a><a href=\"/api\">🔌 REST API</a></div></div></body></html>' > /usr/local/apache2/htdocs/index.html && httpd-foreground"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+    depends_on:
+      - postgrest
+      - gotrue
     networks:
       - kontakte-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
       - "traefik.http.routers.web.priority=1"
-      - "traefik.http.services.web.loadbalancer.server.port=80"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
     restart: unless-stopped
