@@ -1,17 +1,26 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// IMPORTANT: Only use runtime config from window.__env__
-// Do NOT use import.meta.env as it gets hardcoded at build time
-const getEnv = () => {
-    const env = (window as any).__env__ || {}
-    return {
-        url: env.VITE_SUPABASE_URL || 'http://localhost:54321',
-        key: env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+// Lazy initialization to ensure window.__env__ is available at runtime
+let supabaseInstance: SupabaseClient | null = null
+
+export const getSupabase = () => {
+    if (!supabaseInstance) {
+        const env = (window as any).__env__ || {}
+        const url = env.VITE_SUPABASE_URL || 'http://localhost:54321'
+        const key = env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+
+        console.log('[Supabase] Initializing with URL:', url)
+        supabaseInstance = createClient(url, key)
     }
+    return supabaseInstance
 }
 
-const env = getEnv()
-export const supabase = createClient(env.url, env.key)
+// For backwards compatibility
+export const supabase = new Proxy({} as SupabaseClient, {
+    get(target, prop) {
+        return (getSupabase() as any)[prop]
+    }
+})
 
 export type Contact = {
     id: string
