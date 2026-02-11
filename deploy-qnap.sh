@@ -17,6 +17,19 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # =================================
+# 0. QNAP Permission Hotfix
+# =================================
+# Docker Compose auf QNAP versucht oft in das Home-Verzeichnis zu schreiben,
+# was zu "permission denied" führt. Wir erzwingen hier /tmp als Home.
+export HOME=/tmp
+export DOCKER_CONFIG=/tmp/.docker
+export COMPOSE_CACHE_DIR=/tmp/.compose-cache
+
+# Verzeichnisse für Config erstellen
+mkdir -p /tmp/.docker
+mkdir -p /tmp/.compose-cache
+
+# =================================
 # 1. Prüfe Docker
 # =================================
 echo -e "${YELLOW}🔍 Prüfe Docker...${NC}"
