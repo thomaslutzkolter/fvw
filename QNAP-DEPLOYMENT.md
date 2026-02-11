@@ -67,10 +67,7 @@ cd fvw
 ### Schritt 3: Deployment starten
 
 ```bash
-# Script ausführbar machen
-chmod +x deploy-qnap.sh
-
-# Auto-Deployment starten
+# Auto-Deployment starten (kein chmod nötig)
 sh deploy-qnap.sh
 ```
 
@@ -91,8 +88,9 @@ sh deploy-qnap.sh
 
 📍 Services erreichbar unter:
 
-   🗄️  Supabase Studio: http://192.168.1.100/studio
-   🔌 REST API:        http://192.168.1.100/api
+   🌐 Web-App:         http://192.168.1.100:8081/
+   🗄️  Supabase Studio: http://192.168.1.100:8081/studio
+   🔌 REST API:        http://192.168.1.100:8081/api
 ```
 
 > [!IMPORTANT]
@@ -102,10 +100,20 @@ sh deploy-qnap.sh
 
 ## 🌐 Services nutzen
 
+### Web-Frontend (Contact App)
+
+```
+http://deine-qnap-ip:8081/
+```
+
+- **Dashboard:** Übersicht aller Kontakte
+- **Kontakte:** Verwalten, Suchen, Filtern
+- **Studio:** Link zur Datenbank-Verwaltung
+
 ### Supabase Studio (Datenbank-UI)
 
 ```
-http://deine-qnap-ip/studio
+http://deine-qnap-ip:8081/studio
 ```
 
 **Features:**
@@ -320,9 +328,9 @@ docker compose exec -T postgres psql -U postgres kontakte < backup_20260211.sql
 
 ### Wo ist das Frontend?
 
-**Aktueller Stand:** Das Web-Frontend (`apps/web`) ist noch in Entwicklung und in der `docker-compose.yml` auskommentiert.
+**Verfügbar unter:** `http://deine-qnap-ip:8081/`
 
-**Später verfügbar unter:** `http://deine-qnap-ip/` (Traefik Root)
+Das Web-Frontend (`apps/web`) ist aktiviert und bietet Zugriff auf die Kontaktverwaltung. Standardmäßig auf Port 8081, um Konflikte mit dem QNAP-Admin-Interface (Port 80/8080) zu vermeiden.
 
 ### Wie greife ich auf die Datenbank zu?
 
