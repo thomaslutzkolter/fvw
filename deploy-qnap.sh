@@ -30,7 +30,22 @@ mkdir -p /tmp/.docker
 mkdir -p /tmp/.compose-cache
 
 # =================================
-# 1. Prüfe Docker
+# 1. Alte Installation säubern
+# =================================
+echo ""
+echo -e "${YELLOW}🧹 Säubere alte Installation...${NC}"
+
+# Nur wenn docker-compose.yml existiert (d.h. vorherige Installation vorhanden)
+if [ -f "docker-compose.yml" ]; then
+    echo -e "   Stoppe und lösche alte Container + Volumes..."
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
+    echo -e "${GREEN}✓ Alte Installation entfernt${NC}"
+else
+    echo -e "${GREEN}✓ Keine alte Installation gefunden${NC}"
+fi
+
+# =================================
+# 2. Prüfe Docker
 # =================================
 echo -e "${YELLOW}🔍 Prüfe Docker...${NC}"
 
