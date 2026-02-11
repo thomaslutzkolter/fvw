@@ -37,7 +37,7 @@ unzip -o main.zip && mv fvw-main fvw && rm main.zip
 cd fvw
 
 # 3. Setup-Script ausführen (macht alles automatisch!)
-./deploy-qnap.sh
+sh deploy-qnap.sh
 ```
 
 Dann erreichbar auf `http://<qnap-ip>:8081`

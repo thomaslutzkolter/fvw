@@ -71,7 +71,7 @@ cd fvw
 chmod +x deploy-qnap.sh
 
 # Auto-Deployment starten
-./deploy-qnap.sh
+sh deploy-qnap.sh
 ```
 
 **Das Script macht:**
