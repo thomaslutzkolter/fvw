@@ -232,14 +232,20 @@ services:
   # =================================
   # WEB FRONTEND (Next.js)
   # =================================
+  # =================================
+  # WEB FRONTEND (Next.js)
+  # =================================
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
     container_name: kontakte-web
+    user: "1001"
+    working_dir: /app
     environment:
       NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      HOME: /tmp
     depends_on:
       - postgrest
       - gotrue
