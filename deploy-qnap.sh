@@ -1,121 +1,128 @@
 #!/bin/bash
 
 # =================================
-# QNAP Deployment Script für Kontaktverwaltung
+# FVW KONTAKTVERWALTUNG - QNAP DEPLOYMENT
 # =================================
 
-set -e
-
-echo "=================================================="
-echo "  Kontaktverwaltung - QNAP Deployment Setup"
-echo "=================================================="
+echo "================================================"
+echo "  FVW Kontaktverwaltung - QNAP Setup"
+echo "================================================"
 echo ""
 
-# Farben für Output
+# Farben
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+NC='\033[0m'
 
 # =================================
-# 1. Prüfe Voraussetzungen
+# 1. Prüfe Docker
 # =================================
-echo "🔍 Prüfe Voraussetzungen..."
+echo -e "${YELLOW}🔍 Prüfe Docker...${NC}"
 
 if ! command -v docker &> /dev/null; then
-    echo -e "${RED}❌ Docker ist nicht installiert${NC}"
-    echo "Bitte installiere Docker auf deiner QNAP über Container Station"
+    echo -e "${RED}❌ Docker nicht gefunden!${NC}"
+    echo "Installiere Container Station über QNAP App Center"
     exit 1
 fi
 
-if ! command -v docker compose &> /dev/null; then
-    echo -e "${RED}❌ Docker Compose ist nicht installiert${NC}"
+if ! docker compose version &> /dev/null; then
+    echo -e "${RED}❌ Docker Compose nicht gefunden!${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ Docker und Docker Compose gefunden${NC}"
+echo -e "${GREEN}✅ Docker läuft${NC}"
 
 # =================================
-# 2. Environment-Konfiguration
+# 2. Auto-Konfiguration
 # =================================
 echo ""
-echo "📝 Konfiguriere Environment-Variablen..."
+echo -e "${YELLOW}⚙️  Erstelle Environment...${NC}"
 
-if [ ! -f .env ]; then
-    echo "Kopiere .env.example → .env"
-    cp .env.example .env
-    
-    echo ""
-    echo -e "${YELLOW}⚠️  Bitte konfiguriere folgende Werte in der .env Datei:${NC}"
-    echo ""
-    
-    # Generiere sichere Passwörter
-    POSTGRES_PW=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
-    JWT_SECRET=$(openssl rand -base64 32)
-    
-    # Ersetze in .env
-    sed -i "s/your-secure-password-here/$POSTGRES_PW/g" .env
-    sed -i "s|your-super-secret-jwt-token-with-at-least-32-characters-long|$JWT_SECRET|g" .env
-    
-    # Frage nach QNAP IP
-    echo -n "Gib die IP-Adresse deiner QNAP ein (z.B. 192.168.1.100): "
-    read QNAP_IP
-    
-    if [ -z "$QNAP_IP" ]; then
-        echo -e "${YELLOW}Keine IP angegeben, nutze localhost${NC}"
-        QNAP_IP="localhost"
-    fi
-    
-    sed -i "s/192.168.1.100/$QNAP_IP/g" .env
-    
-    echo -e "${GREEN}✅ Environment-Variablen konfiguriert${NC}"
-    echo -e "   Postgres Passwort: ${POSTGRES_PW}"
-    echo -e "   JWT Secret: generiert"
-    echo -e "   QNAP IP: ${QNAP_IP}"
-    
-else
-    echo -e "${YELLOW}⚠️  .env existiert bereits, überspringe Generierung${NC}"
-    source .env
-    QNAP_IP=${HOST_IP:-localhost}
+# Generiere Passwörter
+POSTGRES_PW=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
+JWT_SECRET=$(openssl rand -base64 32)
+
+# Hole QNAP IP
+QNAP_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$QNAP_IP" ]; then
+    QNAP_IP="localhost"
 fi
 
+# Erstelle .env
+cat > .env << EOF
+# AUTO-GENERIERT - QNAP Deployment
+
+# Database
+POSTGRES_PASSWORD=$POSTGRES_PW
+POSTGRES_DB=kontakte
+POSTGRES_USER=postgres
+
+# JWT
+JWT_SECRET=$JWT_SECRET
+
+# API Keys
+ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+# Network
+HOST_IP=$QNAP_IP
+PUBLIC_PORT=80
+
+# SMTP (optional)
+SMTP_ADMIN_EMAIL=admin@example.com
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_SENDER_NAME=FVW Kontaktverwaltung
+
+# Frontend
+NEXT_PUBLIC_SUPABASE_URL=http://$QNAP_IP/api
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+
+NODE_ENV=production
+EOF
+
+echo -e "${GREEN}✅ .env erstellt${NC}"
+echo -e "   QNAP IP: ${CYAN}$QNAP_IP${NC}"
+
 # =================================
-# 3. Erstelle Volumes-Verzeichnisse
+# 3. Verzeichnisse
 # =================================
 echo ""
-echo "📁 Erstelle Volume-Verzeichnisse..."
+echo -e "${YELLOW}📁 Erstelle Verzeichnisse...${NC}"
 
 mkdir -p volumes/postgres
 mkdir -p volumes/storage
-mkdir -p services/supabase/migrations
 
-echo -e "${GREEN}✅ Verzeichnisse erstellt${NC}"
+echo -e "${GREEN}✅ Verzeichnisse OK${NC}"
 
 # =================================
-# 4. Starte Docker-Services
+# 4. Starte Services
 # =================================
 echo ""
-echo "🚀 Starte Supabase-Stack..."
+echo -e "${YELLOW}🚀 Starte Supabase Stack...${NC}"
+echo -e "   (Erster Start: ~2 Minuten für Image-Download)${NC}"
+echo ""
 
-# Lade Images herunter
-echo "   Lade Docker-Images..."
-docker compose pull
-
-# Starte Services
-echo "   Starte Container..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Start fehlgeschlagen!${NC}"
+    exit 1
+fi
+
 # =================================
-# 5. Warte auf Service-Bereitschaft
+# 5. Health Check
 # =================================
 echo ""
-echo "⏳ Warte auf Service-Bereitschaft..."
+echo -e "${YELLOW}⏳ Warte auf Postgres...${NC}"
 
-# Warte auf Postgres
-echo -n "   Postgres: "
 for i in {1..30}; do
-    if docker compose exec -T postgres pg_isready -U postgres &> /dev/null; then
-        echo -e "${GREEN}✅${NC}"
+    if docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Postgres bereit${NC}"
         break
     fi
     echo -n "."
@@ -127,61 +134,30 @@ for i in {1..30}; do
     fi
 done
 
-# Kurze Wartezeit für andere Services
 sleep 5
 
 # =================================
-# 6. Health-Check
+# 6. Fertig!
 # =================================
 echo ""
-echo "🏥 Überprüfe Services..."
-
-check_service() {
-    SERVICE=$1
-    URL=$2
-    
-    echo -n "   $SERVICE: "
-    
-    if curl -sf "$URL" > /dev/null 2>&1; then
-        echo -e "${GREEN}✅${NC}"
-        return 0
-    else
-        echo -e "${RED}❌${NC}"
-        return 1
-    fi
-}
-
-# Überprüfe Services (mit Timeout)
-sleep 3
-
-echo -e "${GREEN}✅ Basis-Services gestartet${NC}"
-
-# =================================
-# 7. Ausgabe URLs
-# =================================
-echo ""
-echo "=================================================="
+echo "================================================"
 echo -e "${GREEN}  ✅ Deployment erfolgreich!${NC}"
-echo "=================================================="
+echo "================================================"
 echo ""
-echo "📍 Zugriff auf Services:"
+echo -e "${CYAN}📍 Services erreichbar unter:${NC}"
 echo ""
-echo "   🌐 Web-App:         http://${QNAP_IP}"
-echo "   🗄️  Supabase Studio: http://${QNAP_IP}/studio"
-echo "   🔌 REST API:        http://${QNAP_IP}/api"
-echo "   🔐 Auth:            http://${QNAP_IP}/auth"
-echo "   💾 Storage:         http://${QNAP_IP}/storage"
-echo "   🌊 Realtime:        http://${QNAP_IP}/realtime"
+echo -e "   🌐 Web-App:         ${GREEN}http://$QNAP_IP${NC}"
+echo -e "   🗄️  Supabase Studio: ${GREEN}http://$QNAP_IP/studio${NC}"
+echo -e "   🔌 REST API:        ${GREEN}http://$QNAP_IP/api${NC}"
+echo -e "   📊 Traefik:         ${GREEN}http://$QNAP_IP:8080${NC}"
 echo ""
-echo "   📊 Traefik Dashboard: http://${QNAP_IP}:8080"
+echo "================================================"
 echo ""
-echo "=================================================="
+echo -e "${YELLOW}🎯 Nächste Schritte:${NC}"
+echo "   1. Öffne Studio: http://$QNAP_IP/studio"
+echo "   2. Erstelle User-Account (Authentication > Users)"
+echo "   3. Importiere Kontakte oder erstelle manuell"
 echo ""
-echo "📝 Nächste Schritte:"
-echo "   1. Öffne Supabase Studio und prüfe die Datenbank"
-echo "   2. Entwickle das Frontend in apps/web"
-echo "   3. Nutze 'docker compose logs -f' für Logs"
-echo ""
-echo "🛑 Stop: docker compose down"
-echo "🔄 Neustart: docker compose restart"
+echo -e "${YELLOW}🛑 Stoppen:${NC}    docker compose down"
+echo -e "${YELLOW}🔄 Logs:${NC}       docker compose logs -f"
 echo ""
