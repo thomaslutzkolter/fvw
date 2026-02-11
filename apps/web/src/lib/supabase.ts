@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Vite uses import.meta.env for environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-key'
+// Runtime environment variables injected by Docker entrypoint script
+const env = (window as any).__env__ || {}
+const supabaseUrl = env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321'
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-key'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
