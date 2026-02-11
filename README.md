@@ -24,7 +24,7 @@ Enterprise Contact Management mit Supabase Backend und modernem Frontend.
 
 ---
 
-## 📦 QNAP Deployment
+## 📦 QNAP Deployment (One-Shot)
 
 ```bash
 # 1. SSH auf QNAP
@@ -32,13 +32,20 @@ ssh admin@qnap-ip
 
 # 2. Repository klonen
 cd /share/Public
-git clone <repo-url> fvw
+wget https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
+unzip main.zip
+mv fvw-main fvw
+rm main.zip
 cd fvw
 
-# 3. Setup-Script ausführen
+# 3. Setup-Script ausführen (macht alles automatisch!)
 chmod +x deploy-qnap.sh
 ./deploy-qnap.sh
 ```
+
+**Services erreichbar unter** (Port 8081):
+- 🗄️ Supabase Studio: `http://qnap-ip:8081/studio`
+- 🔌 API: `http://qnap-ip:8081/api`
 
 ---
 

@@ -108,18 +108,35 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 docker compose logs -f
 ```
 
-### Variante B: Deployment-Script
+### Automatisches Deployment (Empfohlen)
 
 ```bash
+# 1. SSH auf QNAP
+ssh admin@192.168.1.100
+
+# 2. Repository holen
+cd /share/Public
+wget https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
+unzip main.zip
+mv fvw-main fvw
+rm main.zip
+cd fvw
+
+# 3. One-Shot Deployment
 chmod +x deploy-qnap.sh
 ./deploy-qnap.sh
 
 # Script macht:
-# - Environment-Setup mit Passwort-Generierung
+# - IP-Erkennung (oder fragt nach)
+# - Passwort-Generierung
+# - Environment-Setup
 # - Docker Compose Start
 # - Health-Checks
-# - URL-Ausgabe
 ```
+
+**Services dann erreichbar unter Port 8081:**
+- Studio: `http://qnap-ip:8081/studio`
+- API: `http://qnap-ip:8081/api`
 
 ---
 

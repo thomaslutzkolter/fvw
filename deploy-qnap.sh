@@ -44,10 +44,22 @@ echo -e "${YELLOW}⚙️  Erstelle Environment...${NC}"
 POSTGRES_PW=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
 JWT_SECRET=$(openssl rand -base64 32)
 
-# Hole QNAP IP
-QNAP_IP=$(hostname -I | awk '{print $1}')
+# Hole QNAP IP mit mehreren Fallback-Methoden
+QNAP_IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n1)
+
 if [ -z "$QNAP_IP" ]; then
-    QNAP_IP="localhost"
+    QNAP_IP=$(hostname -I | awk '{print $1}')
+fi
+
+if [ -z "$QNAP_IP" ]; then
+    echo -e "${RED}Konnte IP nicht automatisch erkennen${NC}"
+    echo -e "${YELLOW}Bitte gib die QNAP IP ein (z.B. 192.168.1.100):${NC}"
+    read -p "IP: " QNAP_IP
+fi
+
+if [ -z "$QNAP_IP" ]; then
+    echo -e "${RED}❌ Keine IP angegeben. Abbruch.${NC}"
+    exit 1
 fi
 
 # Erstelle .env
@@ -68,7 +80,7 @@ SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW
 
 # Network
 HOST_IP=$QNAP_IP
-PUBLIC_PORT=80
+PUBLIC_PORT=8081
 
 # SMTP (optional)
 SMTP_ADMIN_EMAIL=admin@example.com
@@ -146,10 +158,9 @@ echo "================================================"
 echo ""
 echo -e "${CYAN}📍 Services erreichbar unter:${NC}"
 echo ""
-echo -e "   🌐 Web-App:         ${GREEN}http://$QNAP_IP${NC}"
-echo -e "   🗄️  Supabase Studio: ${GREEN}http://$QNAP_IP/studio${NC}"
-echo -e "   🔌 REST API:        ${GREEN}http://$QNAP_IP/api${NC}"
-echo -e "   📊 Traefik:         ${GREEN}http://$QNAP_IP:8080${NC}"
+echo -e "   🌐 Web-App:         ${GREEN}http://$QNAP_IP:8081${NC}"
+echo -e "   🗄️  Supabase Studio: ${GREEN}http://$QNAP_IP:8081/studio${NC}"
+echo -e "   🔌 REST API:        ${GREEN}http://$QNAP_IP:8081/api${NC}"
 echo ""
 echo "================================================"
 echo ""
