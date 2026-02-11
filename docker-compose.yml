@@ -206,7 +206,7 @@ services:
   # SUPABASE STUDIO (Database UI)
   # =================================
   studio:
-    image: supabase/studio:20240729-ce3163f
+    image: supabase/studio:latest
     container_name: kontakte-studio
     environment:
       STUDIO_PG_META_URL: http://postgres:5432
