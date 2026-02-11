@@ -15,7 +15,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create startup script that generates config.js and starts nginx
+# Create startup script
 RUN cat > /start.sh << 'EOF'
 #!/bin/sh
 cat > /usr/share/nginx/html/config.js << JSEOF
