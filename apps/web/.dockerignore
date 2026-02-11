@@ -1,0 +1,10 @@
+# Ignore node_modules
+node_modules
+npm-debug.log
+
+# Next.js
+.next/
+out/
+
+# Environment
+.env*.local

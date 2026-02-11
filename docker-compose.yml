@@ -228,25 +228,26 @@ services:
       - "traefik.http.routers.studio.middlewares=studio-strip"
     restart: unless-stopped
 
+
   # =================================
   # WEB FRONTEND (Next.js)
-  # =================================
-  # Note: Wird später hinzugefügt nach Frontend-Entwicklung
-  # web:
-  #   build:
-  #     context: ./apps/web
-  #     dockerfile: Dockerfile
-  #   container_name: kontakte-web
-  #   environment:
-  #     NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}/api
-  #     NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
-  #   depends_on:
-  #     - postgrest
-  #     - gotrue
-  #   networks:
-  #     - kontakte-network
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.web.rule=PathPrefix(`/`)"
-  #     - "traefik.http.services.web.loadbalancer.server.port=3000"
-  #   restart: unless-stopped
+  # ================================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: kontakte-web
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+    depends_on:
+      - postgrest
+      - gotrue
+    networks:
+      - kontakte-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.web.priority=1"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+    restart: unless-stopped
