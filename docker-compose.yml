@@ -230,24 +230,19 @@ services:
 
 
   # =================================
-  # WEB FRONTEND (Next.js)
-  # ================================
+  # WEB FRONTEND (Placeholder)
+  # =================================
+  # Note: Verwendet nginx als Platzhalter, da Next.js Build auf QNAP Permission-Errors verursacht
   web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+    image: nginx:alpine
     container_name: kontakte-web
-    environment:
-      NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
-    depends_on:
-      - postgrest
-      - gotrue
+    volumes:
+      - ./apps/web/public:/usr/share/nginx/html:ro
     networks:
       - kontakte-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
       - "traefik.http.routers.web.priority=1"
-      - "traefik.http.services.web.loadbalancer.server.port=3000"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
     restart: unless-stopped

@@ -44,19 +44,27 @@ echo -e "${YELLOW}⚙️  Erstelle Environment...${NC}"
 POSTGRES_PW=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
 JWT_SECRET=$(openssl rand -base64 32)
 
-# Hole QNAP LAN IP (ignoriere Docker-Bridges 172.x und 10.x)
-QNAP_IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v '172\.' | grep -v '^10\.' | awk '{print $2}' | cut -d/ -f1 | head -n1)
+# Hole QNAP LAN IP über physische Interfaces (eth0/eth1)
+# Ignoriere Docker-Bridges (docker0, br-*) und Loopback
+QNAP_IP=$(ip -4 addr show | grep -E 'inet.*eth[0-9]' | awk '{print $2}' | cut -d/ -f1 | head -n1)
 
-# Fallback: Suche gezielt 192.168.x.x
+# Fallback 1: Alle Interfaces außer Docker und Loopback
 if [ -z "$QNAP_IP" ]; then
-    QNAP_IP=$(ip addr show | grep 'inet 192.168' | awk '{print $2}' | cut -d/ -f1 | head -n1)
+    QNAP_IP=$(ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v 'docker' | grep -v 'br-' | awk '{print $2}' | cut -d/ -f1 | head -n1)
 fi
 
-# Interaktiv fragen
+# Fallback 2: Gezielt 192.168.x.x suchen
+if [ -z "$QNAP_IP" ]; then
+    QNAP_IP=$(ip -4 addr show | grep 'inet 192.168' | awk '{print $2}' | cut -d/ -f1 | head -n1)
+fi
+
+# Fallback 3: User fragen
 if [ -z "$QNAP_IP" ]; then
     echo -e "${RED}❌ Konnte QNAP LAN-IP nicht automatisch erkennen${NC}"
-    echo -e "${YELLOW}📝 Bitte gib die QNAP IP ein (z.B. 192.168.1.100):${NC}"
-    read -p "IP: " QNAP_IP
+    echo -e "${YELLOW}Verfügbare IPs:${NC}"
+    ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print "   - " $2}' | cut -d/ -f1
+    echo ""
+    read -p "Bitte richtige QNAP LAN-IP eingeben: " QNAP_IP
 fi
 
 # Validierung
@@ -64,6 +72,8 @@ if [ -z "$QNAP_IP" ]; then
     echo -e "${RED}❌ Keine IP angegeben. Abbruch.${NC}"
     exit 1
 fi
+
+echo -e "${GREEN}✓ Erkannte IP: $QNAP_IP${NC}"
 
 # Erstelle .env
 cat > .env << EOF

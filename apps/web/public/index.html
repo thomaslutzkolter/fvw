@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FVW Kontaktverwaltung</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+        }
+        h1 { font-size: 3em; margin-bottom: 20px; }
+        p { font-size: 1.2em; margin-bottom: 30px; opacity: 0.9; }
+        .links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        a {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .status {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .status-ok { color: #4ade80; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 FVW Kontaktverwaltung</h1>
+        <p>Dein Supabase Backend läuft!</p>
+        
+        <div class="links">
+            <a href="/studio">📊 Supabase Studio</a>
+            <a href="/api">🔌 REST API</a>
+        </div>
+
+        <div class="status">
+            <h3>✅ Verfügbare Services</h3>
+            <div class="status-item">
+                <span>Supabase Studio</span>
+                <span class="status-ok">●</span>
+            </div>
+            <div class="status-item">
+                <span>REST API</span>
+                <span class="status-ok">●</span>
+            </div>
+            <div class="status-item">
+                <span>Authentication</span>
+                <span class="status-ok">●</span>
+            </div>
+            <div class="status-item">
+                <span>Realtime</span>
+                <span class="status-ok">●</span>
+            </div>
+            <div class="status-item">
+                <span>Storage</span>
+                <span class="status-ok">●</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
