@@ -22,7 +22,8 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 # Prüfe ob Docker läuft
 try {
     docker info | Out-Null
-} catch {
+}
+catch {
     Write-Host "❌ Docker läuft nicht!" -ForegroundColor Red
     Write-Host "Starte Docker Desktop und führe dieses Script erneut aus." -ForegroundColor Yellow
     exit 1
@@ -46,10 +47,32 @@ function Generate-Password {
 $POSTGRES_PW = Generate-Password
 $JWT_SECRET = Generate-Password
 
-# Hole lokale IP
-$LOCAL_IP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Ethernet*" | Select-Object -First 1).IPAddress
+# Hole lokale IP (LAN-Adresse)
+$LOCAL_IP = $null
+
+# Versuche verschiedene Interface-Namen
+$interfacePatterns = @("Ethernet*", "WLAN*", "Wi-Fi*", "*LAN*")
+foreach ($pattern in $interfacePatterns) {
+    $ip = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $pattern -ErrorAction SilentlyContinue | 
+        Where-Object { $_.IPAddress -match "^192\.168\.|^10\.|^172\.1[6-9]\.|^172\.2[0-9]\.|^172\.3[0-1]\." } | 
+        Select-Object -First 1).IPAddress
+    if ($ip) {
+        $LOCAL_IP = $ip
+        break
+    }
+}
+
+# Fallback auf erste nicht-localhost IPv4
+if (-not $LOCAL_IP) {
+    $LOCAL_IP = (Get-NetIPAddress -AddressFamily IPv4 | 
+        Where-Object { $_.IPAddress -ne "127.0.0.1" } | 
+        Select-Object -First 1).IPAddress
+}
+
+# Letzter Fallback
 if (-not $LOCAL_IP) {
     $LOCAL_IP = "localhost"
+    Write-Host "⚠️  Konnte LAN-IP nicht ermitteln, nutze localhost" -ForegroundColor Yellow
 }
 
 # Erstelle .env
@@ -173,6 +196,10 @@ Write-Host "🎯 Nächste Schritte:" -ForegroundColor Yellow
 Write-Host "   1. Öffne Studio:     http://$LOCAL_IP/studio" -ForegroundColor Gray
 Write-Host "   2. Erstelle Account über Studio (Authentication)" -ForegroundColor Gray
 Write-Host "   3. Entwickle Frontend:  cd apps\web && pnpm dev" -ForegroundColor Gray
+Write-Host ""
+Write-Host "💡 Zugriff von anderen Geräten im Netzwerk:" -ForegroundColor Cyan
+Write-Host "   Verwende die gleichen URLs mit IP $LOCAL_IP" -ForegroundColor Gray
+Write-Host "   (PC, iPhone, Laptop, etc.)" -ForegroundColor Gray
 Write-Host ""
 Write-Host "🛑 Stoppen:    docker compose down" -ForegroundColor Yellow
 Write-Host "🔄 Logs:       docker compose logs -f" -ForegroundColor Yellow

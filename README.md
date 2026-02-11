@@ -14,12 +14,13 @@ Enterprise Contact Management mit Supabase Backend und modernem Frontend.
 **Das Script macht:**
 - ✅ Prüft Docker
 - ✅ Generiert sichere Passwörter
+- ✅ Erkennt lokale IP (z.B. 192.168.1.50)
 - ✅ Erstellt `.env` automatisch
 - ✅ Startet alle Services
 - ✅ Wartet bis alles ready ist
-- ✅ Zeigt URLs an
+- ✅ Zeigt URLs mit lokaler IP
 
-**Fertig!** Öffne: `http://localhost/studio`
+**Fertig!** Zugriff von **jedem Gerät im Netzwerk** via lokale IP!
 
 ---
 
@@ -43,10 +44,14 @@ chmod +x deploy-qnap.sh
 
 ## 🛠️ Services
 
-- **Studio**: `http://localhost/studio` (DB-Management)
-- **API**: `http://localhost/api` (REST API)  
-- **Web**: `http://localhost` (Frontend)
-- **Traefik**: `http://localhost:8080` (Routing)
+Nach Setup erreichbar über **lokale IP** (z.B. `192.168.1.50`):
+
+- **Studio**: `http://192.168.1.50/studio` (DB-Management)
+- **API**: `http://192.168.1.50/api` (REST API)  
+- **Web**: `http://192.168.1.50` (Frontend)
+- **Traefik**: `http://192.168.1.50:8080` (Routing)
+
+✅ Von **allen Geräten** im Netzwerk erreichbar (PC, Laptop, iPhone, Android)
 
 ---
 
