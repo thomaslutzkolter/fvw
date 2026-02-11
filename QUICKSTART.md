@@ -93,7 +93,7 @@ SELECT * FROM get_contact_full(
 ssh admin@192.168.1.100
 
 # 2. Repository klonen
-cd /share/Container
+cd /share/Public
 git clone <repo-url> fvw
 cd fvw
 

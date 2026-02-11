@@ -31,7 +31,7 @@ Enterprise Contact Management mit Supabase Backend und modernem Frontend.
 ssh admin@qnap-ip
 
 # 2. Repository klonen
-cd /share/Container
+cd /share/Public
 git clone <repo-url> fvw
 cd fvw
 

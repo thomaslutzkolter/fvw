@@ -47,6 +47,9 @@
 > **Container Station** ist QNAPs Docker-Plattform. Nach Installation über den App Center stehen `docker` und `docker compose` Kommandos via SSH zur Verfügung.
 
 > [!TIP]
+> **Pfad-Hinweis:** Der Standard-Pfad `/share/Public` funktioniert auf den meisten QNAP-Systemen. Falls dieser nicht existiert, nutze `/share/Container`, `/share/Docker` oder dein Home-Verzeichnis (`/share/homes/username`). Prüfe mit `ls -la /share/` welche Verzeichnisse vorhanden sind.
+
+> [!TIP]
 > Für produktiven Einsatz empfehlen wir eine **DNS-Reservierung** im Router, damit das QNAP immer unter derselben IP erreichbar ist.
 
 ---
@@ -61,8 +64,8 @@
 # 1. SSH-Verbindung zum QNAP herstellen
 ssh admin@192.168.1.100  # IP durch deine QNAP-IP ersetzen
 
-# 2. In Container Station Verzeichnis wechseln
-cd /share/Container
+# 2. In Public Share wechseln (oder nutze /share/homes/username)
+cd /share/Public
 
 # 3. Repository klonen
 git clone https://github.com/thomaslutzkolter/fvw.git
@@ -109,7 +112,7 @@ Für fortgeschrittene Nutzer mit spezifischen Konfigurationsbedürfnissen:
 
 ```bash
 # 1. Repository klonen
-cd /share/Container
+cd /share/Public
 git clone https://github.com/thomaslutzkolter/fvw.git
 cd fvw
 
@@ -188,7 +191,7 @@ Zugriff dann über: `http://192.168.1.100:8081`
 ### Basis-Kommandos
 
 ```bash
-cd /share/Container/fvw
+cd /share/Public/fvw
 
 # Alle Services starten
 docker compose up -d
@@ -231,7 +234,7 @@ Services werden durch `restart: unless-stopped` automatisch nach QNAP-Neustart g
 ### Updates vom GitHub Repository
 
 ```bash
-cd /share/Container/fvw
+cd /share/Public/fvw
 
 # 1. Änderungen pullen
 git pull origin main
@@ -466,10 +469,10 @@ docker compose exec postgres pg_dump -U postgres kontakte > backup.sql
 
 ```bash
 # Backup-Script erstellen
-cat > /share/Container/fvw/backup.sh << 'EOF'
+cat > /share/Public/fvw/backup.sh << 'EOF'
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/share/Container/fvw/backups"
+BACKUP_DIR="/share/Public/fvw/backups"
 mkdir -p $BACKUP_DIR
 
 docker compose exec -T postgres pg_dump -U postgres kontakte > "$BACKUP_DIR/kontakte_$DATE.sql"
@@ -485,7 +488,7 @@ chmod +x backup.sh
 # Cron-Job einrichten (täglich um 2 Uhr nachts)
 crontab -e
 # Zeile hinzufügen:
-0 2 * * * /share/Container/fvw/backup.sh
+0 2 * * * /share/Public/fvw/backup.sh
 ```
 
 #### Backup wiederherstellen
