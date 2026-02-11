@@ -7,14 +7,12 @@
 ## ⚠️ Aktueller Status
 
 **Verfügbare Services:**
+- ✅ **Web-Frontend** – Contact Management UI
 - ✅ **Supabase Studio** – Datenbank-Verwaltung & SQL-Editor
 - ✅ **REST API** – Auto-generierte API (PostgREST)
 - ✅ **Authentication** – User-Management (GoTrue)
 - ✅ **Realtime** – WebSocket Subscriptions
 - ✅ **Storage** – File Upload & Management
-
-**Noch nicht verfügbar:**
-- ⏳ **Web-Frontend** – Aktuell in Entwicklung (auskommentiert in docker-compose.yml)
 
 ---
 
