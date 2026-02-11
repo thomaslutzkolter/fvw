@@ -1,231 +1,54 @@
 #!/bin/bash
+set -e
 
-# =================================
-# FVW KONTAKTVERWALTUNG - QNAP DEPLOYMENT
-# =================================
+echo "🧹 Cleanup alter Container..."
+cd /share/Public/fvw
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
 
-echo "================================================"
-echo "  FVW Kontaktverwaltung - QNAP Setup"
-echo "================================================"
-echo ""
+echo "📥 Lade neuesten Code..."
+wget -q -O main.zip https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
+unzip -q -o main.zip
+rm -rf apps docker-compose.yml docker-compose.prod.yml
+mv fvw-main/* .
+rm -rf fvw-main main.zip
 
-# Farben
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-# =================================
-# 0. QNAP Permission Hotfix
-# =================================
-# Docker Compose auf QNAP versucht oft in das Home-Verzeichnis zu schreiben,
-# was zu "permission denied" führt. Wir erzwingen hier /tmp als Home.
-export HOME=/tmp
-export DOCKER_CONFIG=/tmp/.docker
-export COMPOSE_CACHE_DIR=/tmp/.compose-cache
-
-# Verzeichnisse für Config erstellen
-mkdir -p /tmp/.docker
-mkdir -p /tmp/.compose-cache
-
-# =================================
-# 1. Alte Installation säubern
-# =================================
-echo ""
-echo -e "${YELLOW}🧹 Säubere alte Installation...${NC}"
-
-# Nur wenn docker-compose.yml existiert (d.h. vorherige Installation vorhanden)
-if [ -f "docker-compose.yml" ]; then
-    echo -e "   Stoppe und lösche alte Container + Volumes..."
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
-    echo -e "${GREEN}✓ Alte Installation entfernt${NC}"
-else
-    echo -e "${GREEN}✓ Keine alte Installation gefunden${NC}"
-fi
-
-# =================================
-# 2. Prüfe Docker
-# =================================
-echo -e "${YELLOW}🔍 Prüfe Docker...${NC}"
-
-if ! command -v docker &> /dev/null; then
-    echo -e "${RED}❌ Docker nicht gefunden!${NC}"
-    echo "Installiere Container Station über QNAP App Center"
-    exit 1
-fi
-
-if ! docker compose version &> /dev/null; then
-    echo -e "${RED}❌ Docker Compose nicht gefunden!${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✅ Docker läuft${NC}"
-
-# =================================
-# 2. Auto-Konfiguration
-# =================================
-echo ""
-echo -e "${YELLOW}⚙️  Erstelle Environment...${NC}"
-
-# Generiere Passwörter
-POSTGRES_PW=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
-JWT_SECRET=$(openssl rand -base64 32)
-
-# Hole QNAP LAN IP über physische Interfaces (eth0/eth1)
-# Ignoriere Docker-Bridges (docker0, br-*) und Loopback
-QNAP_IP=$(ip -4 addr show | grep -E 'inet.*eth[0-9]' | awk '{print $2}' | cut -d/ -f1 | head -n1)
-
-# Fallback 1: Alle Interfaces außer Docker und Loopback
-if [ -z "$QNAP_IP" ]; then
-    QNAP_IP=$(ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1' | grep -v 'docker' | grep -v 'br-' | awk '{print $2}' | cut -d/ -f1 | head -n1)
-fi
-
-# Fallback 2: Gezielt 192.168.x.x suchen
-if [ -z "$QNAP_IP" ]; then
-    QNAP_IP=$(ip -4 addr show | grep 'inet 192.168' | awk '{print $2}' | cut -d/ -f1 | head -n1)
-fi
-
-# Fallback 3: User fragen
-if [ -z "$QNAP_IP" ]; then
-    echo -e "${RED}❌ Konnte QNAP LAN-IP nicht automatisch erkennen${NC}"
-    echo -e "${YELLOW}Verfügbare IPs:${NC}"
-    ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print "   - " $2}' | cut -d/ -f1
-    echo ""
-    read -p "Bitte richtige QNAP LAN-IP eingeben: " QNAP_IP
-fi
-
-# Validierung
-if [ -z "$QNAP_IP" ]; then
-    echo -e "${RED}❌ Keine IP angegeben. Abbruch.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Erkannte IP: $QNAP_IP${NC}"
-
-# Erstelle .env
+echo "🔧 Generiere .env mit QNAP-IP..."
+DETECTED_IP=$(ip route get 1 | awk '{print $7}' | head -1)
 cat > .env << EOF
-# AUTO-GENERIERT - QNAP Deployment
-
-# Database
-POSTGRES_PASSWORD=$POSTGRES_PW
-POSTGRES_DB=kontakte
+# Database Config
 POSTGRES_USER=postgres
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+POSTGRES_DB=kontakte
+POSTGRES_PORT=5432
 
-# JWT
-JWT_SECRET=$JWT_SECRET
-
-# API Keys
+# Auth Config (Supabase)
+JWT_SECRET=$(openssl rand -base64 64)
 ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 
-# Network
-HOST_IP=$QNAP_IP
+# Network Config
+HOST_IP=${DETECTED_IP}
 PUBLIC_PORT=8081
 
 # SMTP (optional)
-SMTP_ADMIN_EMAIL=admin@example.com
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
-SMTP_SENDER_NAME=FVW Kontaktverwaltung
-
-# Frontend
-NEXT_PUBLIC_SUPABASE_URL=http://$QNAP_IP/api
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-
-NODE_ENV=production
+SMTP_SENDER_NAME=FVW Kontakte
 EOF
 
-echo -e "${GREEN}✅ .env erstellt${NC}"
-echo -e "   QNAP IP: ${CYAN}$QNAP_IP${NC}"
+echo "🏗️  Baue Frontend Image..."
+HOME=/tmp docker build --no-cache -t fvw-web:local apps/web
 
-# =================================
-# 3. Verzeichnisse
-# =================================
-echo ""
-echo -e "${YELLOW}📁 Erstelle Verzeichnisse...${NC}"
-
-mkdir -p volumes/postgres
-mkdir -p volumes/storage
-
-echo -e "${GREEN}✅ Verzeichnisse OK${NC}"
-
-# =================================
-# 3b. Build Frontend Manually
-# =================================
-echo ""
-echo -e "${YELLOW}🏗️  Baue Frontend Image (fvw-web)...${NC}"
-echo -e "   (Das kann 2-3 Minuten dauern)${NC}"
-
-# Expliziter Build mit /tmp Home um QNAP Bugs zu umgehen
-export HOME=/tmp
-docker build -t fvw-web:local ./apps/web
-
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Frontend Build fehlgeschlagen!${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✅ Frontend Image gebaut${NC}"
-
-# =================================
-# 4. Starte Services
-# =================================
-echo ""
-echo -e "${YELLOW}🚀 Starte Supabase Stack...${NC}"
-
+echo "🚀 Starte Services..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Start fehlgeschlagen!${NC}"
-    exit 1
-fi
-
-# =================================
-# 5. Health Check
-# =================================
 echo ""
-echo -e "${YELLOW}⏳ Warte auf Postgres...${NC}"
-
-for i in {1..30}; do
-    if docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ Postgres bereit${NC}"
-        break
-    fi
-    echo -n "."
-    sleep 1
-    
-    if [ $i -eq 30 ]; then
-        echo -e "${RED}❌ Timeout${NC}"
-        exit 1
-    fi
-done
-
-sleep 5
-
-# =================================
-# 6. Fertig!
-# =================================
+echo "✅ DEPLOYMENT ERFOLGREICH!"
 echo ""
-echo "================================================"
-echo -e "${GREEN}  ✅ Deployment erfolgreich!${NC}"
-echo "================================================"
+echo "📍 Zugriff unter: http://${DETECTED_IP}:8081/"
+echo "📍 Studio unter:  http://${DETECTED_IP}:8081/studio/"
+echo "📍 API unter:     http://${DETECTED_IP}:8081/api/"
 echo ""
-echo -e "${CYAN}📍 Services erreichbar unter:${NC}"
-echo ""
-echo -e "   🌐 Web-App:         ${GREEN}http://$QNAP_IP:8081${NC}"
-echo -e "   🗄️  Supabase Studio: ${GREEN}http://$QNAP_IP:8081/studio${NC}"
-echo -e "   🔌 REST API:        ${GREEN}http://$QNAP_IP:8081/api${NC}"
-echo ""
-echo "================================================"
-echo ""
-echo -e "${YELLOW}🎯 Nächste Schritte:${NC}"
-echo "   1. Öffne Studio: http://$QNAP_IP/studio"
-echo "   2. Erstelle User-Account (Authentication > Users)"
-echo "   3. Importiere Kontakte oder erstelle manuell"
-echo ""
-echo -e "${YELLOW}🛑 Stoppen:${NC}    docker compose down"
-echo -e "${YELLOW}🔄 Logs:${NC}       docker compose logs -f"
-echo ""
+echo "⚠️  Im Browser: Strg+Shift+R für Hard-Reload!"
