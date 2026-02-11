@@ -138,12 +138,28 @@ mkdir -p volumes/storage
 echo -e "${GREEN}✅ Verzeichnisse OK${NC}"
 
 # =================================
+# 3b. Build Frontend Manually
+# =================================
+echo ""
+echo -e "${YELLOW}🏗️  Baue Frontend Image (fvw-web)...${NC}"
+echo -e "   (Das kann 2-3 Minuten dauern)${NC}"
+
+# Expliziter Build mit /tmp Home um QNAP Bugs zu umgehen
+export HOME=/tmp
+docker build -t fvw-web:local ./apps/web
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Frontend Build fehlgeschlagen!${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Frontend Image gebaut${NC}"
+
+# =================================
 # 4. Starte Services
 # =================================
 echo ""
 echo -e "${YELLOW}🚀 Starte Supabase Stack...${NC}"
-echo -e "   (Erster Start: ~2 Minuten für Image-Download)${NC}"
-echo ""
 
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 

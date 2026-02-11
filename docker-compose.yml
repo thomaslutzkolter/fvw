@@ -233,9 +233,8 @@ services:
   # WEB FRONTEND (Next.js)
   # =================================
   web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+    image: fvw-web:local
+    pull_policy: never
     container_name: kontakte-web
     environment:
       NEXT_PUBLIC_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
