@@ -32,11 +32,10 @@ ssh admin@qnap-ip
 
 # 2. Repository klonen
 cd /share/Public
+rm -rf fvw
 wget https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
 unzip -o main.zip && mv fvw-main fvw && rm main.zip
 cd fvw
-
-# 3. Setup-Script ausführen (macht alles automatisch!)
 sh deploy-qnap.sh
 ```
 
