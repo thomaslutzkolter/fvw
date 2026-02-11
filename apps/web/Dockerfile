@@ -19,6 +19,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Dummy env vars for build time (needed for static generation)
+ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-key-for-build
+
 RUN npm run build
 
 # Production image
