@@ -33,15 +33,14 @@ ssh admin@qnap-ip
 # 2. Repository klonen
 cd /share/Public
 wget https://github.com/thomaslutzkolter/fvw/archive/refs/heads/main.zip
-unzip main.zip
-mv fvw-main fvw
-rm main.zip
+unzip -o main.zip && mv fvw-main fvw && rm main.zip
 cd fvw
 
 # 3. Setup-Script ausführen (macht alles automatisch!)
-chmod +x deploy-qnap.sh
 ./deploy-qnap.sh
 ```
+
+Dann erreichbar auf `http://<qnap-ip>:8081`
 
 **Services erreichbar unter** (Port 8081):
 - 🗄️ Supabase Studio: `http://qnap-ip:8081/studio`
