@@ -14,14 +14,15 @@ RUN npm install
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Dummy env vars for build time (needed for static generation)
+# Real values are injected at runtime via docker-compose
+ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-key-for-build
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Dummy env vars for build time (needed for static generation)
-ENV NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy-key-for-build
 
 RUN npm run build
 
