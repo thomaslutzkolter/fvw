@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase, type Contact } from '@/lib/supabase'
 import { Plus, Search, Filter } from 'lucide-react'
 
 export default function ContactsPage() {
+    const navigate = useNavigate()
     const [contacts, setContacts] = useState<Contact[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
@@ -106,7 +108,11 @@ export default function ContactsPage() {
                                 </thead>
                                 <tbody>
                                     {filteredContacts.map((contact) => (
-                                        <tr key={contact.id}>
+                                        <tr
+                                            key={contact.id}
+                                            onClick={() => navigate(`/contacts/${contact.id}`)}
+                                            className="cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/10"
+                                        >
                                             <td>
                                                 <div className="font-medium">
                                                     {[contact.title, contact.first_name, contact.last_name]
