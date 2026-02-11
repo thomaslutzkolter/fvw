@@ -1,21 +1,19 @@
 # Build Stage
 FROM node:20-alpine AS base
 
+# Set HOME to /tmp globally to avoid any permission issues
+ENV HOME=/tmp
+ENV NPM_CONFIG_CACHE=/tmp/.npm
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
-
-# Set HOME to avoid permission issues
-ENV HOME=/tmp
-
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-
-ENV HOME=/tmp
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -29,7 +27,6 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV HOME=/tmp
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
