@@ -34,6 +34,7 @@ SMTP_PORT=587
 SMTP_USER=admin
 SMTP_PASS=password
 SMTP_SENDER_NAME=FVW
+VITE_SUPABASE_URL=http://$HOST_IP:8081
 EOF
 
 echo "✅ .env file generated."
@@ -130,6 +131,9 @@ docker exec kontakte-postgres psql -U postgres -d kontakte -c "SELECT count(*) F
 echo "--------------------------------"
 echo "Check Anon Permissions:"
 docker exec kontakte-postgres psql -U postgres -d kontakte -c "SELECT grantee, privilege_type FROM information_schema.role_table_grants WHERE table_name='contacts';"
+echo "--------------------------------"
+echo "Check Generated config.js:"
+docker exec kontakte-web cat /usr/share/nginx/html/config.js
 echo "--------------------------------"
 
 echo "============================================"

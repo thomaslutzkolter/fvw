@@ -242,7 +242,7 @@ services:
     pull_policy: never
     container_name: kontakte-web
     environment:
-      VITE_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT:-8081}
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
       VITE_SUPABASE_ANON_KEY: ${ANON_KEY}
       HOME: /tmp
     depends_on:
