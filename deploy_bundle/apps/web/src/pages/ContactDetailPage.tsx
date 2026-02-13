@@ -120,9 +120,12 @@ export default function ContactDetailPage() {
                                 )}
                             </div>
                             <div className="flex gap-2">
-                                <button className="btn-primary flex items-center gap-2">
+                                <button
+                                    onClick={() => navigate(`/contacts/${contact.id}/edit`)}
+                                    className="btn-primary flex items-center gap-2"
+                                >
                                     <Save className="h-4 w-4" />
-                                    Speichern
+                                    Bearbeiten
                                 </button>
                                 <button className="btn-ghost text-red-600 flex items-center gap-2">
                                     <Trash2 className="h-4 w-4" />

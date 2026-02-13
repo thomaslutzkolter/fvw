@@ -27,13 +27,17 @@
     }
 
     .dark {
-        --background: 222.2 84% 4.9%;
+        --background: 222.2 47% 11%;
+        /* Slate 950 */
         --foreground: 210 40% 98%;
-        --card: 222.2 84% 4.9%;
+        --card: 217.2 32.6% 17.5%;
+        /* Slate 900 */
         --card-foreground: 210 40% 98%;
-        --popover: 222.2 84% 4.9%;
+        --popover: 217.2 32.6% 17.5%;
+        /* Slate 900 */
         --popover-foreground: 210 40% 98%;
         --primary: 217.2 91.2% 59.8%;
+        /* Blue 500 */
         --primary-foreground: 222.2 47.4% 11.2%;
         --secondary: 217.2 32.6% 17.5%;
         --secondary-foreground: 210 40% 98%;
@@ -55,7 +59,13 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground font-sans antialiased;
+    }
+}
+
+@layer utilities {
+    .glass {
+        @apply bg-white/10 dark:bg-black/10 backdrop-blur-md border border-white/20 dark:border-white/10;
     }
 }
 
