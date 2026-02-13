@@ -1,9 +1,16 @@
 #!/bin/bash
 set -e
 
+# 🔒 Ensure script runs as root (fixes QNAP permission issues)
+if [ "$(id -u)" -ne 0 ]; then
+  echo "⚠️  Keine Root-Rechte erkannt. Starte neu mit sudo..."
+  exec sudo /bin/bash "$0" "$@"
+fi
+
 echo "🧹 Cleanup alter Container..."
+# Ensure we are in the right directory
 cd /share/Public/fvw
-sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
 
 echo "📥 Lade neuesten Code..."
 rm -rf fvw-main main.zip
@@ -42,10 +49,12 @@ SMTP_SENDER_NAME=FVW Kontakte
 EOF
 
 echo "🏗️  Baue Frontend Image..."
-sudo HOME=/tmp docker build --no-cache -t fvw-web:local apps/web
+# Explicitly set HOME to root's home to avoid user dir creation issues
+export HOME=/root
+docker build --no-cache -t fvw-web:local apps/web
 
 echo "🚀 Starte Services..."
-sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 echo ""
 echo "✅ DEPLOYMENT ERFOLGREICH!"
