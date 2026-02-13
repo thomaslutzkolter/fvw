@@ -46,8 +46,12 @@ docker compose down -v --remove-orphans || true
 echo "🏗️ Building Frontend Image..."
 # Ensure permissions for build context
 chmod -R 777 apps/web || true
-# Build with proper context
-HOME=/tmp docker build -t fvw-web:local apps/web
+
+# Try building with restricted environment variables to avoid home dir access
+if ! HOME=/tmp DOCKER_CONFIG=/tmp docker build -t fvw-web:local apps/web; then
+    echo "⚠️ Regular build failed. Trying with sudo..."
+    sudo HOME=/tmp DOCKER_CONFIG=/tmp docker build -t fvw-web:local apps/web
+fi
 
 # 4. Start Services
 echo "🚀 Starting Services..."
