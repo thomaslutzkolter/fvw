@@ -3,7 +3,7 @@ set -e
 
 echo "🧹 Cleanup alter Container..."
 cd /share/Public/fvw
-docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v 2>/dev/null || true
 
 echo "📥 Lade neuesten Code..."
 rm -rf fvw-main main.zip
@@ -42,10 +42,10 @@ SMTP_SENDER_NAME=FVW Kontakte
 EOF
 
 echo "🏗️  Baue Frontend Image..."
-HOME=/tmp docker build --no-cache -t fvw-web:local apps/web
+sudo HOME=/tmp docker build --no-cache -t fvw-web:local apps/web
 
 echo "🚀 Starte Services..."
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 echo ""
 echo "✅ DEPLOYMENT ERFOLGREICH!"
