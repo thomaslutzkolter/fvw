@@ -85,7 +85,17 @@ FUNC_MIGRATION_FILE="services/supabase/migrations/002_functions.sql"
 
 if [ -f "$APP_MIGRATION_FILE" ]; then
     echo "Applying schema migration..."
-    cat "$APP_MIGRATION_FILE" | docker exec -i kontakte-postgres psql -U postgres -d kontakte
+    # Wait a bit more to ensure postgres is fully stable
+    sleep 5
+    # Try migration with retry
+    n=0
+    until [ "$n" -ge 5 ]
+    do
+       cat "$APP_MIGRATION_FILE" | docker exec -i kontakte-postgres psql -U postgres -d kontakte && break
+       n=$((n+1))
+       echo "Migration failed. Retrying in 5 seconds..."
+       sleep 5
+    done
 else
     echo "❌ Migration file $APP_MIGRATION_FILE not found!"
 fi
