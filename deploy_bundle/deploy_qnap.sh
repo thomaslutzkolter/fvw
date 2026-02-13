@@ -119,6 +119,19 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 echo "🔄 Reloading PostgREST..."
 docker restart kontakte-postgrest
 
+# 9. Verify Deployment
+echo "🔍 Verifying Deployment..."
+echo "--------------------------------"
+echo "Check PostgREST connection:"
+docker logs kontakte-postgrest --tail 5
+echo "--------------------------------"
+echo "Check Contacts Table:"
+docker exec kontakte-postgres psql -U postgres -d kontakte -c "SELECT count(*) FROM contacts;" || echo "❌ Table contacts not found!"
+echo "--------------------------------"
+echo "Check Anon Permissions:"
+docker exec kontakte-postgres psql -U postgres -d kontakte -c "SELECT grantee, privilege_type FROM information_schema.role_table_grants WHERE table_name='contacts';"
+echo "--------------------------------"
+
 echo "============================================"
 echo "✅ DEPLOYMENT COMPLETE"
 echo "URL: http://$HOST_IP:8081"
