@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ContactsPage from './pages/ContactsPage'
 import ContactDetailPage from './pages/ContactDetailPage'
+import ContactNewPage from './pages/ContactNewPage'
+import ContactEditPage from './pages/ContactEditPage'
 
 function App() {
     return (
