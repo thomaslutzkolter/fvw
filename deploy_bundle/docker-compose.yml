@@ -68,9 +68,9 @@ services:
       - kontakte-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.postgrest.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.postgrest.rule=PathPrefix(`/rest/v1`)"
       - "traefik.http.services.postgrest.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.postgrest-strip.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.postgrest-strip.stripprefix.prefixes=/rest/v1"
       - "traefik.http.routers.postgrest.middlewares=postgrest-strip"
     restart: unless-stopped
 
@@ -112,8 +112,10 @@ services:
       - kontakte-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gotrue.rule=PathPrefix(`/auth`)"
+      - "traefik.http.routers.gotrue.rule=PathPrefix(`/auth/v1`)"
       - "traefik.http.services.gotrue.loadbalancer.server.port=9999"
+      - "traefik.http.middlewares.gotrue-strip.stripprefix.prefixes=/auth/v1"
+      - "traefik.http.routers.gotrue.middlewares=gotrue-strip"
     restart: unless-stopped
 
   # =================================
@@ -145,8 +147,10 @@ services:
       - kontakte-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.realtime.rule=PathPrefix(`/realtime`)"
+      - "traefik.http.routers.realtime.rule=PathPrefix(`/realtime/v1`)"
       - "traefik.http.services.realtime.loadbalancer.server.port=4000"
+      - "traefik.http.middlewares.realtime-strip.stripprefix.prefixes=/realtime/v1"
+      - "traefik.http.routers.realtime.middlewares=realtime-strip"
     restart: unless-stopped
 
   # =================================
@@ -178,8 +182,10 @@ services:
       - kontakte-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=PathPrefix(`/storage`)"
+      - "traefik.http.routers.storage.rule=PathPrefix(`/storage/v1`)"
       - "traefik.http.services.storage.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.storage-strip.stripprefix.prefixes=/storage/v1"
+      - "traefik.http.routers.storage.middlewares=storage-strip"
     restart: unless-stopped
 
   # =================================
@@ -236,7 +242,7 @@ services:
     pull_policy: never
     container_name: kontakte-web
     environment:
-      VITE_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT}/api
+      VITE_SUPABASE_URL: http://${HOST_IP}:${PUBLIC_PORT:-8081}
       VITE_SUPABASE_ANON_KEY: ${ANON_KEY}
       HOME: /tmp
     depends_on:
