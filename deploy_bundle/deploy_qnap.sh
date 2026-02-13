@@ -40,6 +40,14 @@ echo "✅ .env file generated."
 
 # 2. Cleanup Old Deployment
 echo "🧹 Cleaning up old containers..."
+# Explicitly remove containers by name because docker compose down might miss them 
+# if the project name changed or context is different.
+CONTAINERS="kontakte-traefik kontakte-postgres kontakte-postgrest kontakte-gotrue kontakte-realtime kontakte-storage kontakte-imgproxy kontakte-studio kontakte-web"
+for container in $CONTAINERS; do
+    echo "Removing $container..."
+    docker rm -f $container 2>/dev/null || true
+done
+
 docker compose down -v --remove-orphans || true
 
 # 3. Build Frontend
